@@ -27,6 +27,7 @@ class RedshiftOutput < BufferedOutput
   config_param :path, :string, :default => ""
   config_param :timestamp_key_format, :string, :default => 'year=%Y/month=%m/day=%d/hour=%H/%Y%m%d-%H%M'
   config_param :utc, :bool, :default => false
+  config_param :auto_create_bucket, :bool, :default => true
   # redshift
   config_param :redshift_host, :string
   config_param :redshift_port, :integer, :default => 5439
@@ -72,6 +73,7 @@ class RedshiftOutput < BufferedOutput
     options[:s3_endpoint] = @s3_endpoint if @s3_endpoint
     @s3 = AWS::S3.new(options)
     @bucket = @s3.buckets[@s3_bucket]
+    ensure_bucket
   end
 
   def format(tag, time, record)
@@ -174,6 +176,7 @@ class RedshiftOutput < BufferedOutput
         begin
           hash = json? ? json_to_hash(record[@record_log_tag]) : record[@record_log_tag]
           tsv_text = hash_to_table_text(redshift_table_columns, hash, delimiter)
+
           gzw.write(tsv_text) if tsv_text and not tsv_text.empty?
         rescue => e
           if json?
@@ -185,6 +188,7 @@ class RedshiftOutput < BufferedOutput
           $log.error_backtrace
         end
       end
+
       return nil unless gzw.pos > 0
     ensure
       gzw.close rescue nil if gzw
@@ -283,6 +287,17 @@ class RedshiftOutput < BufferedOutput
                                 else
                                   @redshift_tablename
                                 end
+  end
+
+  def ensure_bucket
+    if !@bucket.exists?
+      if @auto_create_bucket
+        $log.info "Creating bucket #{@s3_bucket} on #{@s3_endpoint}"
+        @s3.buckets.create(@s3_bucket)
+      else
+        raise "The specified bucket does not exist: bucket = #{@s3_bucket}"
+      end
+    end
   end
 end
 
