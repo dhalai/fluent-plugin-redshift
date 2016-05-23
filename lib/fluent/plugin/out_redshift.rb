@@ -71,7 +71,7 @@ class RedshiftOutput < BufferedOutput
       :secret_access_key => @aws_sec_key
     }
     options[:s3_endpoint] = @s3_endpoint if @s3_endpoint
-    @s3 = AWS::S3.new(options)
+    @s3 = Aws::S3.new(options)
     @bucket = @s3.buckets[@s3_bucket]
     ensure_bucket
   end
