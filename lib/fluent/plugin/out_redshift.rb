@@ -65,13 +65,13 @@ module Fluent
       super
 
       options = {
-        :access_key_id     => @aws_key_id,
-        :secret_access_key => @aws_sec_key
+        access_key_id: @aws_key_id,
+        secret_access_key: @aws_sec_key,
+        region: @s3_region
       }
-      options[:region] = @s3_region if @s3_region
 
       s3_client = Aws::S3::Client.new(options)
-      @s3 = Aws::S3::Resource.new(:client => s3_client)
+      @s3 = Aws::S3::Resource.new(client: s3_client)
       @bucket = @s3.bucket(@s3_bucket)
 
       ensure_bucket
@@ -291,13 +291,13 @@ module Fluent
     end
 
     def ensure_bucket
-      if !@bucket.exists?
-        if @auto_create_bucket
-          $log.info "Creating bucket #{@s3_bucket} on #{@s3_endpoint}"
-          @s3.buckets.create(@s3_bucket)
-        else
-          raise "The specified bucket does not exist: bucket = #{@s3_bucket}"
-        end
+      return if @bucket.exists?
+
+      if @auto_create_bucket
+        log.info "Creating bucket #{@s3_bucket} on #{@s3_endpoint}"
+        @s3.create_bucket(:bucket => @s3_bucket)
+      else
+        raise "The specified bucket does not exist: bucket = #{@s3_bucket}"
       end
     end
   end
