@@ -68,7 +68,7 @@ module Fluent
         :access_key_id     => @aws_key_id,
         :secret_access_key => @aws_sec_key
       }
-      options[:s3_region] = @s3_region if @s3_region
+      options[:region] = @s3_region if @s3_region
 
       s3_client = Aws::S3::Client.new(options)
       @s3 = Aws::S3::Resource.new(:client => s3_client)
