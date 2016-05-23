@@ -265,7 +265,7 @@ class RedshiftOutputTest < Test::Unit::TestCase
     current_time = Time.now
 
     # create mock of s3 object
-    s3obj = flexmock(AWS::S3::S3Object)
+    s3obj = flexmock(Aws::S3::S3Object)
     s3obj.should_receive(:exists?).with_any_args.and_return { false }
     s3obj.should_receive(:write).with(
       # pathname
@@ -282,7 +282,7 @@ class RedshiftOutputTest < Test::Unit::TestCase
     ).and_return { true }
 
     # create mock of s3 object collection
-    s3obj_col = flexmock(AWS::S3::ObjectCollection)
+    s3obj_col = flexmock(Aws::S3::ObjectCollection)
     s3obj_col.should_receive(:[]).with(
       on { |key|
         expected_key = current_time.utc.strftime("log/year=%Y/month=%m/day=%d/hour=%H/%Y%m%d-%H%M_00.gz")
@@ -293,7 +293,7 @@ class RedshiftOutputTest < Test::Unit::TestCase
       }
 
     # create mock of s3 bucket
-    flexmock(AWS::S3::Bucket).new_instances do |bucket|
+    flexmock(Aws::S3::Bucket).new_instances do |bucket|
       bucket.should_receive(:objects).with_any_args.
         and_return {
           s3obj_col
